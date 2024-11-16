@@ -34,7 +34,7 @@ def handle_invalid_usage(error):
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
-    return generate_sitemap(app)
+    return generate_sitemap(app) #Comentario de Prueba para subir a GitHub
 
 @app.route('/user', methods=['GET'])
 def handle_hello():
