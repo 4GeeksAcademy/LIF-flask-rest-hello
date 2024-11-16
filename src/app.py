@@ -8,7 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Planet, Characters
+
 #from models import Person
 
 app = Flask(__name__)
@@ -44,6 +45,45 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+@app.route('/users', methods=['GET'])
+def get_all_users():
+    users = User.query.al()
+    print(users)# users es una lista que contiene todos los usuarios
+    users_serialized = []
+    for user in users:
+        users_serialized.append(user.serialize())
+        #serializar es convertir un dato tipo modelo a dict
+        #solo asi se puede convertir en JSON
+    return jsonify({'msg': 'ok','data': users_serialized}), 200 
+
+@app.route('/planet', methods=['POST'])   
+def post_planet():
+    #para crear un planeta necesitamos un body que contenga
+    #el nombre y el clima del planeta
+    body = request.get_json( silent=True)
+    if body is None:
+        return jsonify({'msg': 'Debes enviar información en el body'}), 400
+    if 'name' not in body:
+        return jsonify({'msg': 'El campo name es obligatorio'}), 400
+    if 'climate' not in body:
+        return jsonify({'msg': 'El campo climate es obligatorio'}), 400
+    new_planet = Planet()
+    new_planet.name = body['name']
+    new_planet.climate = body ['climate']
+    db.session.add(new_planet)
+    db.session.commit()
+
+    return jsonify(
+        {
+            'msg': 'Planeta agregado con exito',
+            'data': new_planet.serialize()
+         }
+         ), 201 
+    
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
