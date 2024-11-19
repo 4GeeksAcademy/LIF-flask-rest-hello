@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, Characters, Planet_Favorites, Favorite_Characters
+from models import db, User, Planet, Characters, Planet_Favorites, Favorites_Character
 #from models import Person
 
 app = Flask(__name__)
@@ -102,6 +102,42 @@ def post_planet():
         }
     ), 201
 
+@app.route('/characters', methods=['POST'])
+def post_character():
+    #Codigo para crear un personaje, se necesita en el body nombre, altura y id del planeta dónde vive
+    body = request.get_json(silent=True)
+
+    if body is None:
+        return jsonify({'msg': 'Debe enviar información en el body'}), 400
+    if 'name' not in body:
+        return jsonify({'msg': 'El campo nombre es obligatoio'}), 400
+    if 'height' not in body:
+        return jsonify({'msg': 'El campo altura  es obligatorio'}), 400
+    if 'planet_id' not in body:
+        return jsonify({'msg': 'El campo "planet_id"  es obligatorio'}), 400
+
+
+    planet = Planet.query.get(body['planet_id'])  
+    if not planet:
+        return jsonify({'msg': 'Planeta no encontrado'}), 404  
+    
+    new_character = Characters()
+    new_character.name = body['name']
+    new_character.height = body['height']
+    new_character.planet_id = body['planet_id']
+    
+
+    db.session.add(new_character)
+    db.session.commit()
+
+    return jsonify(
+        {
+            'msg': 'Personaje agregado con éxito',
+            'data': new_character.serialize() 
+        }
+    ), 201
+
+
 @app.route('/characters/<int:id>', methods = ['GET'])
 def get_characters(id):
     character = Characters.query.get(id)
@@ -139,15 +175,15 @@ def get_favorites_buy_user(user_id):
         }
     )
 
-@app.route('/favorite/people/<int:people_id>/<int:user_id>', methods=['POST'])
-def add_favorite_character(people_id, user_id):
+@app.route('/favorite/character/<int:character_id>/<int:user_id>', methods=['POST'])
+def add_favorite_character(character_id, user_id):
     user = User.query.get(user_id)
-    character = Characters.query.get(people_id)
+    character = Characters.query.get(character_id)
 
     if not user or not character:
         return jsonify({'msg': 'Usuario o persona no econtrado'}), 404
     
-    new_favorite = Favorite_Characters(user_id = user_id, character_id = people_id)
+    new_favorite = Favorites_Character(user_id = user_id, character_id = character_id)
     db.session.add(new_favorite)
     db.session.commit()
 
@@ -159,9 +195,9 @@ def add_favorite_character(people_id, user_id):
     ), 201
 
 # Borrar un personaje favorito
-@app.route('/favorite/people/<int:people_id>/ <ing:user_id>', methods =['DELETE'])
-def delete_favorite_character(people_id, user_id):
-    favorite = Favorite_Characters.query.filter_by(user_id =user_id, character_id= people_id).first()
+@app.route('/favorite/character/<int:character_id>/ <int:user_id>', methods =['DELETE'])
+def delete_favorites_character(character_id, user_id):
+    favorite = Favorites_Character.query.filter_by(user_id =user_id, character_id= character_id).first()
 
     if not favorite:
         return jsonify({'msg': 'Personaje favorito no encontrado'}), 404
