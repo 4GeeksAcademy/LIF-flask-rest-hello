@@ -9,6 +9,7 @@ class User(db.Model):
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
     planet_favorites = db.relationship('Planet_Favorites', back_populates='user_relationship')
+    character_favorites = db.relationship('Favorites_Character', back_populates='user_relationship')
 
     def __repr__(self):
         return f'Usuario{self.email}y id {self.id}'
@@ -28,6 +29,8 @@ class Characters(db.Model):
     height = db.Column(db.Integer, nullable=False)
     planet_id =db.Column(db.Integer, db.ForeignKey ('planet.id'), nullable=False)
     planet_id_relationship = db.relationship('Planet', back_populates='people')
+    favorites_character= db.relationship('Favorites_Character', back_populates='character_relationship')
+
 
     def __repr__(self):
         return f'Character {self.name} con ID {self.id}'
@@ -74,7 +77,24 @@ class Planet_Favorites(db.Model):
             'user_id': self.user_id,
             'planet_id': self.planet_id
         }
+
+class Favorites_Character(db.Model):
+    __tablename__='favorites_character'
+    id = db.Column(db.Integer, primary_key= True )
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_relationship = db.relationship('User', back_populates='character_favorites')
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'))
+    character_relationship = db.relationship('Characters', back_populates = 'favorites_character')   
+
+    def __repr(self):
+        return f'Al usuario {self.user_id}, le gusta el personaje {self.character_id}'
     
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'character_id': self.character_id
+        }
              
         
 
