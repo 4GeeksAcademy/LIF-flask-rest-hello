@@ -56,6 +56,13 @@ def get_all_users():
         #solo asi se puede convertir en JSON
     return jsonify({'msg':'ok', 'data': users_serialized}), 200
 
+#Get Planetas
+@app.route('/planets', methods=['GET'])
+def get_all_planets():
+    planets= Planet.query.all()
+    planets_serialized = [planet.serialize() for planet in planets]
+    return jsonify({'msg': 'Planetas obtenidos con éxito', 'data': planets_serialized}),200
+
 #Traer presonajes favoritos de un usuario
 @app.route('/users/<int:user_id>/favorites', methods=['GET'])
 def get_user_favorites(user_id):

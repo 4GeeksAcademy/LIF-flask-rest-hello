@@ -28,7 +28,7 @@ class Characters(db.Model):
     name = db. Column(db.String(50), unique=True, nullable=False)
     height = db.Column(db.Integer, nullable=False)
     planet_id =db.Column(db.Integer, db.ForeignKey ('planet.id'), nullable=False)
-    planet_id_relationship = db.relationship('Planet', back_populates='people')
+    planet_id_relationship = db.relationship('Planet', back_populates='character')
     favorites_character= db.relationship('Favorites_Character', back_populates='character_relationship')
 
 
@@ -47,11 +47,12 @@ class Planet(db.Model):
     __tablename__ = "planet"    
     id = db.Column(db.Integer, primary_key= True)
     name = db.Column(db.String (50), unique = True,  nullable=False)
-    people = db.relationship('Characters', back_populates='planet_id_relationship')
+    climate = db.Column(db.String(50), nullable=False) 
+    character = db.relationship('Characters', back_populates='planet_id_relationship')
     favorite_planets = db.relationship('Planet_Favorites', back_populates='planet_relationship')
 
     def __repr__(self):
-        return f'Planeta {self.name} con clima {self.climate}'
+        return f'Planeta {self.name} con clima {self.climate or "desconocido" }'
     
     def serialize(self):
         return {
