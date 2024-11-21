@@ -47,7 +47,7 @@ def handle_hello():
 
 @app.route('/users', methods=['GET'])
 def get_all_users():
-    users = User.query.al()
+    users = User.query.all()
     print(users)# users es una lista que contiene todos los usuarios
     users_serialized = []
     for user in users:
@@ -62,6 +62,24 @@ def get_all_planets():
     planets= Planet.query.all()
     planets_serialized = [planet.serialize() for planet in planets]
     return jsonify({'msg': 'Planetas obtenidos con éxito', 'data': planets_serialized}),200
+
+#Get Personajes
+@app.route('/characters', methods=['GET'])
+def get_all_characters():
+    characters= Characters.query.all()
+    characters_serialized = [character.serialize() for character in characters]
+    return jsonify({'msg': 'Personaje obtenidos con éxito', 'data': characters_serialized}),200
+
+
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def get_planet(planet_id):
+    planet = Planet.query.get(planet_id)
+    if not planet:
+        return jsonify({'msg': 'Planeta no encontrado'}), 404
+    return jsonify({'msg': 'Planeta obtenido con éxito', 'data': planet.serialize()}),200
+
+
 
 #Traer presonajes favoritos de un usuario
 @app.route('/users/<int:user_id>/favorites', methods=['GET'])
@@ -182,6 +200,22 @@ def get_favorites_buy_user(user_id):
         }
     )
 
+@app.route('/favorite/planet/<int:planet_id>/<int:user_id>', methods=['POST'])
+def add_favorite_planet(planet_id, user_id):
+    user = User.query.get(user_id)
+    planet = Planet.query.get(planet_id)
+    if not user or not planet:
+        return jsonify({'msg': 'Usuario o planeta no encontrado'}), 404
+    
+    new_favorite = Planet_Favorites(user_id=user_id, planet_id=planet_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify({'msg': 'Planeta favorito adicionado con éxito', 'data': new_favorite.serialize()}), 201
+
+
+
+
 @app.route('/favorite/character/<int:character_id>/<int:user_id>', methods=['POST'])
 def add_favorite_character(character_id, user_id):
     user = User.query.get(user_id)
@@ -202,7 +236,7 @@ def add_favorite_character(character_id, user_id):
     ), 201
 
 # Borrar un personaje favorito
-@app.route('/favorite/character/<int:character_id>/ <int:user_id>', methods =['DELETE'])
+@app.route('/favorite/character/<int:character_id>/<int:user_id>', methods =['DELETE'])
 def delete_favorites_character(character_id, user_id):
     favorite = Favorites_Character.query.filter_by(user_id =user_id, character_id= character_id).first()
 
@@ -214,7 +248,17 @@ def delete_favorites_character(character_id, user_id):
 
     return jsonify({'msg': 'Personaje favorito eliminado con éxito'}), 200
 
-   
+@app.route ('/favorite/planet/<int:planet_id>/<int:user_id>', methods=['DELETE'])
+def delete_favorite_planet(planet_id, user_id):
+    favorite = Planet_Favorites.query.filter_by(user_id = user_id, planet_id =planet_id).first()
+
+    if not favorite:
+        return jsonify({'msg': 'Planeta favorit no encontrado'}), 404
+    
+    db.session.delete(favorite)
+    db.session.commit()
+     
+    return jsonify({'msg': 'Planeta favorito eliminado con éxito'}),  200 
 
 
 # this only runs if `$ python src/app.py` is executed
